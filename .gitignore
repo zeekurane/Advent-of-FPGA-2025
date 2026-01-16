@@ -27,3 +27,53 @@ setup.log
 
 # Local OPAM switch
 _opam/
+
+########################
+# macOS
+########################
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+########################
+# OCaml / Hardcaml
+########################
+*.cmi
+*.cmo
+*.cmx
+*.o
+*.a
+*.cmxa
+*.exe
+
+# Native binaries
+hw_main
+
+########################
+# Hardcaml / Simulation
+########################
+*.vcd
+*.fst
+*.wlf
+*.log
+
+########################
+# Python
+########################
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+
+########################
+# Editors / IDEs
+########################
+.vscode/
+.idea/
+*.swp
+*~
+#*#
