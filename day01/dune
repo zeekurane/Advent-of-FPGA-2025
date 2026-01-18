@@ -1,0 +1,22 @@
+; Build configuration
+
+; Library: Hardware core
+(library
+ (name hardware_core)
+ (modules hardware_core)
+ (libraries base hardcaml)
+ (preprocess (pps ppx_jane ppx_hardcaml)))
+
+; Library: Parser
+(library
+ (name parser)
+ (modules parser)
+ (libraries base stdio))
+
+; Executable: Simulator (main program)
+(executable
+ (name simulator)
+ (public_name simulator)
+ (modules simulator)
+ (libraries base stdio hardcaml hardware_core parser)
+ (preprocess (pps ppx_jane ppx_hardcaml)))

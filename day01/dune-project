@@ -1,0 +1,19 @@
+(lang dune 3.0)
+(name advent_of_fpga_2025_day01)
+
+(generate_opam_files true)
+
+(package
+ (name advent_of_fpga_2025_day01)
+ (synopsis "Advent of Code 2025 Day 1 - FPGA Solution")
+ (description "Hardware implementation using Hardcaml")
+ (authors "Jishan Kurane <jishankurane@gmail.com>")
+ (depends
+  (ocaml (>= 4.14.0))
+  (dune (>= 3.0))
+  base
+  stdio
+  hardcaml
+  (hardcaml (>= v0.14.0))
+  ppx_jane
+  ppx_hardcaml))
