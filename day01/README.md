@@ -4,14 +4,15 @@
 
 ## Table of Contents
 * [Problem Statement Summary](#problem-statement-summary-full-problem-statement-day-1-secret-entrance)
-* [Format of input commands](#format-of-commands-inside-input_filetxt)
-* [Apprach in Brief](#approach-in-brief)
+* [Input Commands Format](#input-commands-format-input_filetxt)
+* [Apprach In Brief](#approach-in-brief)
        * [Tinkering With The Problem](#tinkering-with-the-problem)
        * [Ideas](#ideas)
        * [Parsing Phase](#parsing-phase)
        * [FPGA Circuit](#fpga-circuit)
        * [Simulation Phase](#simulation-phase)
 * [Architecture](#architecture)
+* [Hardcaml Simulation and ASCII Waveform](#hardcaml-simulation-and-ascii-waveform-waveterm)
 * [Hardware Resources](#hardware-resources)
 * [FPGA Challenge Performance Parameters](#fpga-challenge-performance-parameters)
 * [How To RUN?](#how-to-run)
@@ -26,7 +27,7 @@ The dial has positions [`0` - `99`], with 100 wrapping to `0`. Starting at posit
 - **Part 1**: Count how many times the dial lands exactly on zero
 - **Part 2**: Count total number of times the dial crosses/passes through 0 (How many clicks lead to passing through zero)
 
-## Format of commands inside `input_file.txt`
+## Input Commands Format `input_file.txt`
        R203
        L20
        R2
@@ -41,9 +42,10 @@ Started with understanding syntax and getting a feel of ocaml and hardcaml. Havi
 
 Definitely, this particular problem is sequential in nature due to its constarints like, we need to know how many times a command ends up the dial at `0`. Hence, we can't run the command process parallelly.
 
-# Ideas:
+### Ideas:
 - Apply each click per cycle. This idea is simple to implement and staright forward, but lacks performance and doesn't use the provided resources to its full extent.
 - Use the modulo, division operators to simplify the process. This idea seemed better than previous one, but those operations on a fpga are heavy.
+- Finalized an approach, which simulates a rotation command per cycle. This turned out to be the best that I could think of while keeping the complexity of the fpga circuit moderate. This idea is explained thoroughly in further [discussion](#approach).
 
 *Thought an idea*: If multiplication by `2` in decimal is exactly same as left-shift in binary, then same rule might also apply for other numbers too, right? Turns out multiplication and similar operations are just the implementation of same idea in binary (hardware-level).
 
@@ -69,7 +71,9 @@ Thought about parsing (hardware parsing and software parsing) and finalised to p
 ### Parsing Phase
 
 Created a prototype program in python for parsing of commands which needed to be fed to the circuit/fpga.
-While playing with the secret entrance problem, noticed that number of clicks aren't larger than 1000 in the puzzle input file for AoC. Found out that, the number can be broken down into two seperate terms, one of which will only impact a total rotations of the dial and another which will impact the dial position aswell as the rotation.
+While playing with the secret entrance problem, noticed that number of clicks aren't larger than 1000 in the puzzle input file for AoC.
+### **Approach**
+Found out that, the number can be broken down into two seperate terms, one of which will only impact a total rotations of the dial and another which will impact the dial position aswell as the rotation.
                      
 Split: `L203` → `(L, 2, 03)` = direction + hundreds + last two digits
 - Hundreds represent full rotations (200 clicks = 2 complete dial rotations)
@@ -83,7 +87,7 @@ Converted the python parser program into ocaml program, as it was being ineffici
 
 ### FPGA Circuit
 
-The position of the dial is always between 0 and 100, hence 7 bits are good enough for its representation, whereas the counters (registers which store subproblem 1 and 2's answer) are kindof depended on number of commands applied in one simulation. Hence, chose to keep it at 32 bits each, however for the sake of the AoC problem 16 bits would've been enough.
+The position of the dial is always between 0 and 100, hence 7 bits are good enough for its representation, whereas the counters (registers which store subproblem 1 and 2's answer) are kindof depended on number of commands applied in one simulation. Hence, chose to keep it at `32` bits each, however for the sake of the AoC problem `16` bits would've been enough.
 
 Psuedo-code for the hardware:
 
@@ -144,13 +148,33 @@ Hence, tried to have position register's value default to `50` at resets, but be
 ## Architecture
 
 ### Single-Cycle Processing Pipeline
-```
-Input Command → [Parse] → [Position Update] → [Crossing Detection] → [Counters]
-                  ↓              ↓                    ↓                  ↓
-            (dir,mid,last)    New position      Did we cross 0?     Part1 & Part2
-                                                                     
-All in 1 clock cycle!
-```
+
+              Input Command → [Parse] → [Position Update] → [Crossing Detection] → [Counters]
+                            ↓              ↓                    ↓                  ↓
+                     (dir,mid,last)    New position      Did we cross 0?     Part1 & Part2
+                                                                             
+              All in 1 clock cycle!
+
+### Hardcaml Simulation and ASCII Waveform (waveterm)
+
+![hardcaml_waveterm_aoc_2025_day01](../assets/hardcaml_waveterm_aoc_2025_day01.png)
+
+- The above output and cycle to cycle waveform inside `FPGA` is generated by running the program with the following rotation commands in the input file: 
+
+       L68
+       L30
+       R48
+       L5
+       R60
+       L55
+       L1
+       L99
+       R14
+       L82
+
+- The waveform explains how values change within the hardware. Importantly, it all happens in `1` cycle.
+- Each numeric value in the waveform diagram is hexadecimal
+(As the numeric values in waveform weren't fitting, reduced the counter bits from 32 to 16 for the waveform visualisation)
 
 ## Hardware Resources
 
@@ -163,7 +187,7 @@ All in 1 clock cycle!
 ## FPGA Challenge Performance Parameters
 
 ✅ **Scalability**: Design handles 10× - 100x larger inputs by just changing bit widths  
-✅ **Efficiency**: Single-cycle processing vs multi-cycle iterative approaches
+✅ **Efficiency**: Achieved Single-cycle processing per command (Best approach for AoC 2025 Day 1 puzzle)
 
 
 ## How To RUN?
